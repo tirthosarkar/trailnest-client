@@ -2,179 +2,323 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mountain, Eye, EyeOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
+
+import Container from '@/components/Ui/Container';
 import Button from '@/components/Ui/Button';
 import Input from '@/components/Ui/Input';
-import Container from '@/components/Ui/Container';
-import { FcGoogle } from 'react-icons/fc';
+import ImageUpload from '@/components/Ui/ImageUpload';
+import { signUp } from '@/lib/auth-client';
 
 const RegisterPage = () => {
   const router = useRouter();
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [success, setSuccess] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    photoURL: '',
+    image: '',
     password: '',
+    confirmPassword: '',
   });
-  const [error, setError] = useState('');
+
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    image: '',
+    password: '',
+    confirmPassword: '',
+    general: '',
+  });
+
+  const [success, setSuccess] = useState('');
 
   const validatePassword = (password: string) => {
-    const errors = [];
+    const errors: string[] = [];
+
     if (password.length < 6) errors.push('at least 6 characters');
     if (!/[A-Z]/.test(password)) errors.push('one uppercase letter');
     if (!/[a-z]/.test(password)) errors.push('one lowercase letter');
+
     return errors;
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors = {
+      name: '',
+      email: '',
+      image: '',
+      password: '',
+      confirmPassword: '',
+      general: '',
+    };
+    let isValid = true;
+
+    // Name validation
+    if (!formData.name) {
+      newErrors.name = 'Name is required';
+      isValid = false;
+    } else if (formData.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+      isValid = false;
+    } else if (formData.name.length > 50) {
+      newErrors.name = 'Name must be less than 50 characters';
+      isValid = false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+      isValid = false;
+    }
+
+    // Image validation
+    if (!formData.image) {
+      newErrors.image = 'Photo is required';
+      isValid = false;
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+      isValid = false;
+    } else {
+      const passwordErrors = validatePassword(formData.password);
+      if (passwordErrors.length > 0) {
+        newErrors.password = `Password must contain ${passwordErrors.join(', ')}`;
+        isValid = false;
+      }
+    }
+
+    // Confirm Password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+      isValid = false;
+    } else if (
+      formData.password &&
+      formData.password !== formData.confirmPassword
+    ) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear specific field error when user starts typing
+    if (errors[name as keyof typeof errors]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    // Clear general error when user starts typing
+    if (errors.general) {
+      setErrors(prev => ({ ...prev, general: '' }));
+    }
+    if (success) setSuccess('');
+  };
+
+  const handleImageUpload = (url: string) => {
+    setFormData(prev => ({ ...prev, image: url }));
+    if (errors.image) {
+      setErrors(prev => ({ ...prev, image: '' }));
+    }
+  };
+
+  const handleImageRemove = () => {
+    setFormData(prev => ({ ...prev, image: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
-    if (
-      !formData.name ||
-      !formData.email ||
-      !formData.photoURL ||
-      !formData.password
-    ) {
-      setError('Please fill in all fields');
-      return;
-    }
-
-    // Password validation
-    const passwordErrors = validatePassword(formData.password);
-    if (passwordErrors.length > 0) {
-      setError(`Password must have: ${passwordErrors.join(', ')}`);
+    if (!validateForm()) {
       return;
     }
 
     setIsLoading(true);
-    setError('');
+    setErrors({
+      name: '',
+      email: '',
+      image: '',
+      password: '',
+      confirmPassword: '',
+      general: '',
+    });
+    setSuccess('');
 
     try {
-      // TODO: Replace with BetterAuth
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setSuccess(true);
-      setTimeout(() => router.push('/login'), 1500);
-    } catch (err) {
-      setError('Registration failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      const result = await signUp.email({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        image: formData.image,
+      });
 
-  const handleGoogleSignUp = async () => {
-    setIsLoading(true);
-    try {
-      // TODO: Replace with BetterAuth Google OAuth
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      router.push('/');
+      if (result.error) {
+        setErrors(prev => ({
+          ...prev,
+          general: result.error.message || 'Registration failed',
+        }));
+        return;
+      }
+
+      setSuccess('Registration successful! Redirecting to login...');
+
+      setTimeout(() => {
+        router.push('/login');
+        router.refresh();
+      }, 1500);
     } catch (err) {
-      setError('Google sign up failed');
+      console.error(err);
+      setErrors(prev => ({
+        ...prev,
+        general: 'Registration failed. Please try again.',
+      }));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-(--background) to-(--primary)/5 py-12 px-4">
+    <div className="min-h-screen bg-linear-to-br from-white to-(--primary)/5 py-12">
       <Container>
-        <div className="max-w-md mx-auto">
-          {/* Register Card */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-(--dark)">
+        <div className="mx-auto max-w-md">
+          <div className="rounded-2xl bg-white p-8 shadow-xl">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-bold text-(--dark)">
                 Create Account
-              </h2>
+              </h1>
+
               <p className="mt-2 text-sm text-(--text-secondary)">
-                Start your adventure today
+                Start your outdoor adventure today.
               </p>
             </div>
 
             {success && (
-              <div className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-600 border border-green-200">
-                Registration successful! Please login.
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{success}</span>
               </div>
             )}
 
-            {error && (
-              <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-500 border border-red-200">
-                {error}
+            {errors.general && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <span>{errors.general}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Profile Photo - Moved to Top */}
               <div>
-                <label className="text-sm font-medium text-(--dark)">
-                  Name
+                <ImageUpload
+                  label="Profile Photo"
+                  onImageUpload={handleImageUpload}
+                  onImageRemove={handleImageRemove}
+                  required={true}
+                />
+                {errors.image && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.image}
+                  </p>
+                )}
+              </div>
+
+              {/* Name Field */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-(--dark)">
+                  Full Name <span className="text-red-500">*</span>
                 </label>
+
                 <Input
+                  name="name"
                   type="text"
                   placeholder="John Doe"
                   value={formData.name}
-                  onChange={e =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="mt-1.5"
+                  onChange={handleChange}
                   disabled={isLoading}
+                  className={
+                    errors.name
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : ''
+                  }
                 />
+
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
+              {/* Email Field */}
               <div>
-                <label className="text-sm font-medium text-(--dark)">
-                  Email
+                <label className="mb-1 block text-sm font-medium text-(--dark)">
+                  Email <span className="text-red-500">*</span>
                 </label>
+
                 <Input
+                  name="email"
                   type="email"
                   placeholder="you@example.com"
                   value={formData.email}
-                  onChange={e =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  className="mt-1.5"
+                  onChange={handleChange}
                   disabled={isLoading}
+                  className={
+                    errors.email
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : ''
+                  }
                 />
+
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
+              {/* Password Field */}
               <div>
-                <label className="text-sm font-medium text-(--dark)">
-                  Photo URL
+                <label className="mb-1 block text-sm font-medium text-(--dark)">
+                  Password <span className="text-red-500">*</span>
                 </label>
-                <Input
-                  type="url"
-                  placeholder="https://example.com/photo.jpg"
-                  value={formData.photoURL}
-                  onChange={e =>
-                    setFormData({ ...formData, photoURL: e.target.value })
-                  }
-                  className="mt-1.5"
-                  disabled={isLoading}
-                />
-              </div>
 
-              <div>
-                <label className="text-sm font-medium text-(--dark)">
-                  Password
-                </label>
-                <div className="relative mt-1.5">
+                <div className="relative">
                   <Input
+                    name="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Create a strong password"
+                    placeholder="Create password"
                     value={formData.password}
-                    onChange={e =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    className="pr-10"
+                    onChange={handleChange}
                     disabled={isLoading}
+                    className={`pr-10 ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -183,29 +327,87 @@ const RegisterPage = () => {
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-(--text-secondary) mt-1.5">
-                  Password must have: 6+ characters, uppercase & lowercase
-                  letter
-                </p>
+
+                {errors.password ? (
+                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.password}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-(--text-secondary)">
+                    Minimum 6 characters with uppercase & lowercase letters.
+                  </p>
+                )}
+              </div>
+
+              {/* Confirm Password Field */}
+              <div>
+                <label className="mb-1 block text-sm font-medium text-(--dark)">
+                  Confirm Password <span className="text-red-500">*</span>
+                </label>
+
+                <Input
+                  name="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Confirm password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                  className={
+                    errors.confirmPassword
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : ''
+                  }
+                />
+
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               <Button
                 type="submit"
-                variant="secondary"
+                variant="primary"
                 className="w-full"
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating account...' : 'Register'}
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    Creating Account...
+                  </span>
+                ) : (
+                  'Register'
+                )}
               </Button>
             </form>
 
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-gray-200" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-4 text-(--text-secondary)">
+
+              <div className="relative flex justify-center">
+                <span className="bg-white px-3 text-sm text-(--text-secondary)">
                   Or continue with
                 </span>
               </div>
@@ -214,19 +416,17 @@ const RegisterPage = () => {
             {/* Google Button */}
             <button
               disabled
-              onClick={handleGoogleSignUp}
-              //   disabled={isLoading}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-300 px-4 py-3 font-medium text-(--dark) transition hover:bg-gray-50 disabled:opacity-50"
+              className="flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-gray-300 py-3 text-sm font-medium text-(--dark) opacity-60"
             >
               <FcGoogle className="h-5 w-5" />
               Continue with Google
             </button>
 
-            <p className="mt-6 text-center text-sm ">
+            <p className="mt-6 text-center text-sm text-(--text-secondary)">
               Already have an account?{' '}
               <Link
                 href="/login"
-                className="font-bold text-(--primary) hover:underline"
+                className="font-semibold text-(--primary) hover:underline transition"
               >
                 Login
               </Link>

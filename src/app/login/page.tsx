@@ -1,23 +1,26 @@
-// app/login/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Mountain, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
+
 import Button from '@/components/Ui/Button';
 import Input from '@/components/Ui/Input';
 import Container from '@/components/Ui/Container';
-import { FcGoogle } from 'react-icons/fc';
+import { signIn } from '@/lib/auth-client'; // ✅ Ensure this points to your auth-client path
 
 const LoginPage = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+
   const [errors, setErrors] = useState({
     email: '',
     password: '',
@@ -28,7 +31,6 @@ const LoginPage = () => {
     const newErrors = { email: '', password: '', general: '' };
     let isValid = true;
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
       newErrors.email = 'Email is required';
@@ -38,7 +40,6 @@ const LoginPage = () => {
       isValid = false;
     }
 
-    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
       isValid = false;
@@ -54,86 +55,100 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
     setErrors({ email: '', password: '', general: '' });
 
     try {
-      // TODO: Replace with BetterAuth
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // For demo, always succeed
-      router.push('/');
-    } catch (err) {
-      setErrors({
-        ...errors,
-        general: 'Invalid email or password',
+      // ✅ Integrated with BetterAuth Email Sign-In
+      const result = await signIn.email({
+        email: formData.email,
+        password: formData.password,
+        // callbackURL: "/", // Where to direct after successful auth
       });
+      setTimeout(() => {
+        router.push('/');
+        router.refresh();
+      }, 1500);
+
+      if (result?.error) {
+        setErrors(prev => ({
+          ...prev,
+          general: result.error.message || 'Invalid email or password',
+        }));
+        return;
+      }
+
+      router.push('/');
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      setErrors(prev => ({
+        ...prev,
+        general: 'An unexpected error occurred. Please try again.',
+      }));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    setErrors({ email: '', password: '', general: '' });
+  // const handleGoogleSignIn = async () => {
+  //   setIsLoading(true);
+  //   setErrors({ email: "", password: "", general: "" });
 
-    try {
-      // TODO: Replace with BetterAuth Google OAuth
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      router.push('/');
-    } catch (err) {
-      setErrors({
-        ...errors,
-        general: 'Google sign in failed. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     // ✅ Integrated with BetterAuth Google OAuth provider
+  //     await signIn.social({
+  //       provider: "google",
+  //       callbackURL: "/",
+  //     });
+  //   } catch (err) {
+  //     console.error(err);
+  //     setErrors((prev) => ({
+  //       ...prev,
+  //       general: "Google authentication failed. Please try again.",
+  //     }));
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear specific field error when user starts typing
+
     if (errors[name as keyof typeof errors]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-    // Clear general error when user starts typing
     if (errors.general) {
       setErrors(prev => ({ ...prev, general: '' }));
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-(--background) to-(--primary)/5 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-white to-(--primary)/5 py-12 px-4">
       <Container>
-        <div className="max-w-md mx-auto">
-          {/* Login Card */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="max-w-md mx-auto w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100/50">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-(--dark)">Welcome Back</h2>
+              <h1 className="text-3xl font-bold text-(--dark)">Welcome Back</h1>
               <p className="mt-2 text-sm text-(--text-secondary)">
                 Sign in to continue your adventure
               </p>
             </div>
 
-            {/* General Error */}
             {errors.general && (
-              <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-500 border border-red-200 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 border border-red-200 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0" />
                 <span>{errors.general}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               {/* Email Field */}
               <div>
-                <label className="text-sm font-medium text-(--dark)">
-                  Email
+                <label className="block text-sm font-medium text-(--dark) mb-1">
+                  Email <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="email"
@@ -141,7 +156,11 @@ const LoginPage = () => {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`mt-1.5 ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
+                  className={
+                    errors.email
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+                      : ''
+                  }
                   disabled={isLoading}
                   autoComplete="email"
                 />
@@ -155,15 +174,19 @@ const LoginPage = () => {
 
               {/* Password Field */}
               <div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-1">
                   <label className="text-sm font-medium text-(--dark)">
-                    Password
+                    Password <span className="text-red-500">*</span>
                   </label>
-                  <a className="text-sm text-(--primary) hover:underline transition cursor-pointer">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm font-semibold text-(--primary) hover:underline transition"
+                  >
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
-                <div className="relative mt-1.5">
+
+                <div className="relative">
                   <Input
                     type={showPassword ? 'text' : 'password'}
                     name="password"
@@ -198,12 +221,15 @@ const LoginPage = () => {
               <Button
                 type="submit"
                 variant="primary"
-                className="w-full"
+                className="w-full h-11 flex justify-center items-center font-semibold"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      viewBox="0 0 24 24"
+                    >
                       <circle
                         className="opacity-25"
                         cx="12"
@@ -230,7 +256,7 @@ const LoginPage = () => {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="bg-white px-4 text-(--text-secondary)">
@@ -239,23 +265,22 @@ const LoginPage = () => {
               </div>
             </div>
 
-            {/* Google Button */}
+            {/* Google Button Enabled */}
             <button
+              type="button"
+              // onClick={handleGoogleSignIn}
               disabled
-              onClick={handleGoogleSignIn}
-              // disabled={isLoading}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-300 px-4 py-3 font-medium text-(--dark) transition hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-300 px-4 py-3 font-medium text-(--dark) bg-white transition hover:bg-gray-50/80 hover:border-gray-400/80 disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
             >
               <FcGoogle className="h-5 w-5" />
-
-              {isLoading ? 'Connecting...' : 'Continue with Google'}
+              <span>Continue with Google</span>
             </button>
 
-            <p className="mt-6 text-center text-sm">
+            <p className="mt-6 text-center text-sm text-(--text-secondary)">
               Don&apos;t have an account?{' '}
               <Link
                 href="/register"
-                className="font-bold text-[#e07a3f] hover:underline transition"
+                className="font-bold text-(--primary) hover:underline transition"
               >
                 Register
               </Link>

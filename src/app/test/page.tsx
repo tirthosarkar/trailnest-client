@@ -1,16 +1,8 @@
-'use client'; // error.tsx catches errors from Client Components or interactive handlers
+// Temporary test inside a page component
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export default function TestPage() {
-  return (
-    <div className="p-8">
-      <button
-        onClick={() => {
-          throw new Error('Simulated application crash test!');
-        }}
-        className="bg-red-500 text-white p-2 rounded"
-      >
-        Trigger Crash Screen
-      </button>
-    </div>
-  );
+export default async function Page() {
+  await delay(5000); // Forces Next.js to show loading.tsx for 5 seconds
+
+  return <div>Page content loaded!</div>;
 }
