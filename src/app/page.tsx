@@ -1,10 +1,6 @@
-import Container from '@/components/Ui/Container';
-
-import Button from '@/components/Ui/Button';
-
-import Input from '@/components/Ui/Input';
-import SectionTitle from '@/components/Ui/SectionTitle';
 import Hero from '@/components/Home/Hero';
+import WhyChooseUs from '@/components/Home/WhyChooseUs';
+import Newsletter from '@/components/Home/Newsletter';
 
 export default function Home() {
   return (
@@ -29,6 +25,8 @@ export default function Home() {
     // </Container>
     <>
       <Hero />
+      <WhyChooseUs />
+      <Newsletter />
     </>
   );
 }
