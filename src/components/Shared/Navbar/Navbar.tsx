@@ -1,4 +1,3 @@
-// components/Navbar/index.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -20,7 +19,7 @@ const Navbar = () => {
     const isLoggedIn = !!session;
   */
 
-  const isLoggedIn = true;
+  const isLoggedIn = false;
 
   const publicLinks = [
     {
