@@ -1,10 +1,9 @@
-// components/Navbar/MobileDrawer.tsx
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Menu,
   X,
@@ -16,15 +15,20 @@ import {
   LogOut,
   Compass,
 } from 'lucide-react';
+
 import Button from '@/components/Ui/Button';
+import { signOut } from '@/lib/auth-client'; // ✅ Imported BetterAuth client
+import type { UserSession } from '@/lib/core/session'; // ✅ Adjusted session type path
 
 interface MobileDrawerProps {
   isLoggedIn: boolean;
+  user: UserSession | null; // ✅ Added user prop configuration
 }
 
-const MobileDrawer = ({ isLoggedIn }: MobileDrawerProps) => {
+const MobileDrawer = ({ isLoggedIn, user }: MobileDrawerProps) => {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Primary navigation links
   const mainLinks = [
@@ -50,6 +54,20 @@ const MobileDrawer = ({ isLoggedIn }: MobileDrawerProps) => {
     return pathname.startsWith(href);
   };
 
+  // ✅ Seamless BetterAuth Logout processing
+  const handleLogout = async () => {
+    try {
+      setOpen(false);
+      await signOut({});
+      setTimeout(() => {
+        router.push('/login');
+        router.refresh();
+      }, 1500);
+    } catch (error) {
+      console.error('Sign-out failed:', error);
+    }
+  };
+
   return (
     <div className="lg:hidden">
       {/* Trigger Button */}
@@ -72,7 +90,7 @@ const MobileDrawer = ({ isLoggedIn }: MobileDrawerProps) => {
 
           {/* Premium Right Drawer Panel */}
           <div className="fixed right-0 top-0 z-50 flex h-screen w-80 flex-col bg-white shadow-2xl transition-transform duration-300 ease-out animate-in slide-in-from-right">
-            {/* Header section matching drop-down style */}
+            {/* Header section */}
             <div className="flex items-center justify-between border-b px-5 py-4">
               <h2 className="text-lg font-bold text-(--dark)">Navigation</h2>
               <button
@@ -136,7 +154,7 @@ const MobileDrawer = ({ isLoggedIn }: MobileDrawerProps) => {
                 </div>
               )}
 
-              {/* Explicit Profile Options inside Menu */}
+              {/* Profile Options inside Menu */}
               {isLoggedIn && (
                 <div className="space-y-1">
                   <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
@@ -165,14 +183,17 @@ const MobileDrawer = ({ isLoggedIn }: MobileDrawerProps) => {
 
             {/* Premium User Card / Authentication Actions Bottom Wrapper */}
             <div className="border-t bg-gray-50/70 p-4">
-              {isLoggedIn ? (
+              {isLoggedIn && user ? (
                 <div className="space-y-4">
                   {/* User Profile Summary block */}
                   <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
-                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gray-100">
                       <Image
-                        src="https://i.pravatar.cc/100?img=12"
-                        alt="User profile avatar"
+                        src={
+                          user.image ||
+                          `https://api.dicebear.com/7.x/initials/svg?seed=${user.name || 'User'}`
+                        } // ✅ Safe dynamic profile fallback
+                        alt={user.name || 'User profile avatar'}
                         fill
                         sizes="40px"
                         className="object-cover"
@@ -180,20 +201,17 @@ const MobileDrawer = ({ isLoggedIn }: MobileDrawerProps) => {
                     </div>
                     <div className="overflow-hidden">
                       <h3 className="truncate font-semibold text-sm text-(--dark)">
-                        Shahadat
+                        {user.name}
                       </h3>
                       <p className="truncate text-xs text-gray-500">
-                        shahadat@email.com
+                        {user.email}
                       </p>
                     </div>
                   </div>
 
                   {/* Clean Text-based Logout matching Dropdown style */}
                   <button
-                    onClick={() => {
-                      setOpen(false);
-                      console.log('Logout clicked');
-                    }}
+                    onClick={handleLogout}
                     className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
                   >
                     <LogOut className="h-4 w-4" />

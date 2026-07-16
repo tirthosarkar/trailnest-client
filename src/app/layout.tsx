@@ -3,6 +3,7 @@ import { Outfit, Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Shared/Navbar/Navbar';
 import Footer from '@/components/Shared/Footer/Footer';
+import { getUserSession } from '@/lib/core/session';
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -21,17 +22,20 @@ export const metadata: Metadata = {
   description: 'Outdoor Gear & Campsite Booking Platform',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch session on the server completely securely
+  const user = await getUserSession();
+
   return (
     <html data-theme="light" lang="en" className={` h-full antialiased`}>
       <body
         className={`${outfit.variable} ${inter.variable} min-h-full flex flex-col`}
       >
-        <Navbar />
+        <Navbar user={user} />
 
         <main> {children}</main>
         <Footer />
