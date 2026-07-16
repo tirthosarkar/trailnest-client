@@ -1,5 +1,5 @@
-import { headers } from 'next/headers';
-import { auth } from '../auth';
+import { headers } from "next/headers";
+import { auth } from "../auth";
 
 // Define a type match based on your auth instance structure if needed,
 // otherwise standard 'any' or your custom User/Session types work perfectly.
@@ -22,7 +22,7 @@ export const getUserSession = async (): Promise<UserSession | null> => {
 
     return session?.user || null;
   } catch (error) {
-    console.error('Failed to fetch user session details:', error);
+    console.error("Failed to fetch user session details:", error);
     return null;
   }
 };
@@ -38,7 +38,7 @@ export const getUserToken = async (): Promise<string | null> => {
 
     return session?.session?.token || null;
   } catch (error) {
-    console.error('Failed to fetch user session token:', error);
+    console.error("Failed to fetch user session token:", error);
     return null;
   }
 };

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Menu,
   X,
@@ -14,11 +14,12 @@ import {
   Settings,
   LogOut,
   Compass,
-} from 'lucide-react';
+} from "lucide-react";
 
-import Button from '@/components/Ui/Button';
-import { signOut } from '@/lib/auth-client'; // ✅ Imported BetterAuth client
-import type { UserSession } from '@/lib/core/session'; // ✅ Adjusted session type path
+import Button from "@/components/Ui/Button";
+import { signOut } from "@/lib/auth-client"; // ✅ Imported BetterAuth client
+import type { UserSession } from "@/lib/core/session"; // ✅ Adjusted session type path
+import { BsInfoLg } from "react-icons/bs";
 
 interface MobileDrawerProps {
   isLoggedIn: boolean;
@@ -32,25 +33,26 @@ const MobileDrawer = ({ isLoggedIn, user }: MobileDrawerProps) => {
 
   // Primary navigation links
   const mainLinks = [
-    { name: 'Home', href: '/', icon: Home },
-    { name: 'Explore', href: '/explore', icon: Compass },
+    { name: "Home", href: "/", icon: Home },
+    { name: "Explore", href: "/explore", icon: Compass },
+    { name: "About", href: "/about", icon: BsInfoLg },
   ];
 
   // Action links for authenticated users
   const actionLinks = [
-    { name: 'Add Listing', href: '/add-listing', icon: PlusCircle },
-    { name: 'My Listings', href: '/my-listings', icon: Home },
-    { name: 'My Bookings', href: '/my-bookings', icon: Calendar },
+    { name: "Add Listing", href: "/add-listing", icon: PlusCircle },
+    { name: "My Listings", href: "/my-listings", icon: Home },
+    { name: "My Bookings", href: "/my-bookings", icon: Calendar },
   ];
 
   // User account specific settings
   const accountLinks = [
-    { name: 'Profile', href: '/profile', icon: User },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: "Profile", href: "/profile", icon: User },
+    // { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   const isActiveLink = (href: string) => {
-    if (href === '/') return pathname === href;
+    if (href === "/") return pathname === href;
     return pathname.startsWith(href);
   };
 
@@ -60,11 +62,11 @@ const MobileDrawer = ({ isLoggedIn, user }: MobileDrawerProps) => {
       setOpen(false);
       await signOut({});
       setTimeout(() => {
-        router.push('/login');
+        router.push("/login");
         router.refresh();
       }, 1500);
     } catch (error) {
-      console.error('Sign-out failed:', error);
+      console.error("Sign-out failed:", error);
     }
   };
 
@@ -109,19 +111,19 @@ const MobileDrawer = ({ isLoggedIn, user }: MobileDrawerProps) => {
                 <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
                   Discover
                 </p>
-                {mainLinks.map(link => (
+                {mainLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setOpen(false)}
                     className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition font-medium text-sm ${
                       isActiveLink(link.href)
-                        ? 'bg-(--primary)/10 text-(--primary) font-semibold'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? "bg-(--primary)/10 text-(--primary) font-semibold"
+                        : "text-gray-700 hover:bg-gray-50"
                     }`}
                   >
                     <link.icon
-                      className={`h-4 w-4 ${isActiveLink(link.href) ? 'text-(--primary)' : 'text-gray-400'}`}
+                      className={`h-4 w-4 ${isActiveLink(link.href) ? "text-(--primary)" : "text-gray-400"}`}
                     />
                     <span>{link.name}</span>
                   </Link>
@@ -134,19 +136,19 @@ const MobileDrawer = ({ isLoggedIn, user }: MobileDrawerProps) => {
                   <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
                     Manage
                   </p>
-                  {actionLinks.map(link => (
+                  {actionLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition font-medium text-sm ${
                         isActiveLink(link.href)
-                          ? 'bg-(--primary)/10 text-(--primary) font-semibold'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          ? "bg-(--primary)/10 text-(--primary) font-semibold"
+                          : "text-gray-700 hover:bg-gray-50"
                       }`}
                     >
                       <link.icon
-                        className={`h-4 w-4 ${isActiveLink(link.href) ? 'text-(--primary)' : 'text-gray-400'}`}
+                        className={`h-4 w-4 ${isActiveLink(link.href) ? "text-(--primary)" : "text-gray-400"}`}
                       />
                       <span>{link.name}</span>
                     </Link>
@@ -160,19 +162,19 @@ const MobileDrawer = ({ isLoggedIn, user }: MobileDrawerProps) => {
                   <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
                     Account
                   </p>
-                  {accountLinks.map(link => (
+                  {accountLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition font-medium text-sm ${
                         isActiveLink(link.href)
-                          ? 'bg-(--primary)/10 text-(--primary) font-semibold'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          ? "bg-(--primary)/10 text-(--primary) font-semibold"
+                          : "text-gray-700 hover:bg-gray-50"
                       }`}
                     >
                       <link.icon
-                        className={`h-4 w-4 ${isActiveLink(link.href) ? 'text-(--primary)' : 'text-gray-400'}`}
+                        className={`h-4 w-4 ${isActiveLink(link.href) ? "text-(--primary)" : "text-gray-400"}`}
                       />
                       <span>{link.name}</span>
                     </Link>
@@ -191,9 +193,9 @@ const MobileDrawer = ({ isLoggedIn, user }: MobileDrawerProps) => {
                       <Image
                         src={
                           user.image ||
-                          `https://api.dicebear.com/7.x/initials/svg?seed=${user.name || 'User'}`
+                          `https://api.dicebear.com/7.x/initials/svg?seed=${user.name || "User"}`
                         } // ✅ Safe dynamic profile fallback
-                        alt={user.name || 'User profile avatar'}
+                        alt={user.name || "User profile avatar"}
                         fill
                         sizes="40px"
                         className="object-cover"

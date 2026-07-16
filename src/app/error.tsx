@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   RefreshCcw,
   ChevronDown,
   ChevronUp,
-} from 'lucide-react';
-import Container from '@/components/Ui/Container';
-import Button from '@/components/Ui/Button';
+} from "lucide-react";
+import Container from "@/components/Ui/Container";
+import Button from "@/components/Ui/Button";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -20,7 +20,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
   useEffect(() => {
     // Log the error securely to your telemetry system here
-    console.error('Application Boundary Crash Log:', error);
+    console.error("Application Boundary Crash Log:", error);
   }, [error]);
 
   return (
@@ -89,7 +89,7 @@ export default function Error({ error, reset }: ErrorProps) {
             {showDetails && (
               <div className="px-4 pb-4 pt-1 border-t border-red-100/50">
                 <p className="text-sm font-mono font-medium text-red-600 bg-white/80 p-3 rounded-lg border border-red-100/80 break-words shadow-inner">
-                  {error.message || 'An unknown execution error occurred.'}
+                  {error.message || "An unknown execution error occurred."}
                 </p>
                 {error.digest && (
                   <p className="mt-2 text-[11px] font-mono text-gray-400">
@@ -114,7 +114,7 @@ export default function Error({ error, reset }: ErrorProps) {
             </Button>
 
             <button
-              onClick={() => (window.location.href = '/')}
+              onClick={() => (window.location.href = "/")}
               //   className="text-sm font-semibold text-(--text-secondary) hover:text-(--dark) px-4 py-2 transition duration-200"
             >
               <Button variant="outline"> Return Home</Button>

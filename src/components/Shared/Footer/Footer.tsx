@@ -1,6 +1,6 @@
 // components/Footer/index.tsx
-import Link from 'next/link';
-import Image from 'next/image';
+import Link from "next/link";
+import Image from "next/image";
 import {
   Mountain,
   Mail,
@@ -11,42 +11,43 @@ import {
   TreePine,
   Tent,
   Award,
-} from 'lucide-react';
-import Container from '@/components/Ui/Container';
-import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa6';
-import Logo from '../Navbar/Logo';
+} from "lucide-react";
+import Container from "@/components/Ui/Container";
+import { FaFacebook, FaInstagram, FaTwitter, FaYoutube } from "react-icons/fa6";
+import Logo from "../Navbar/Logo";
+import { BsTwitterX } from "react-icons/bs";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const quickLinks = [
-    { name: 'About Us', href: '/about' },
-    { name: 'Explore Listings', href: '/explore' },
-    { name: 'How It Works', href: '/how-it-works' },
-    { name: 'Safety Tips', href: '/safety-tips' },
-    { name: 'Contact', href: '/contact' },
+    { name: "About Us", href: "/about" },
+    { name: "Explore Listings", href: "/explore" },
+    { name: "How It Works", href: "/how-it-works" },
+    { name: "Safety Tips", href: "/safety-tips" },
+    { name: "Contact", href: "/contact" },
   ];
 
   const supportLinks = [
-    { name: 'Help Center', href: '/help' },
-    { name: 'FAQs', href: '/faqs' },
-    { name: 'Terms of Service', href: '/terms' },
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Cookie Policy', href: '/cookies' },
+    { name: "Help Center", href: "/help" },
+    { name: "FAQs", href: "/faqs" },
+    { name: "Terms of Service", href: "/terms" },
+    { name: "Privacy Policy", href: "/privacy" },
+    { name: "Cookie Policy", href: "/cookies" },
   ];
 
   const socialLinks = [
-    { name: 'Facebook', icon: FaFacebook, href: '#' },
-    { name: 'Instagram', icon: FaInstagram, href: '#' },
-    { name: 'Twitter', icon: FaTwitter, href: '#' },
-    { name: 'Youtube', icon: FaYoutube, href: '#' },
+    { name: "Facebook", icon: FaFacebook, href: "#" },
+    { name: "Instagram", icon: FaInstagram, href: "#" },
+    { name: "Twitter", icon: BsTwitterX, href: "#" },
+    { name: "Youtube", icon: FaYoutube, href: "#" },
   ];
 
   const features = [
-    { icon: Compass, text: 'Explore 1000+ Trails' },
-    { icon: Tent, text: 'Camping & Hiking' },
-    { icon: TreePine, text: 'Nature Experiences' },
-    { icon: Award, text: 'Best Travel Platform 2024' },
+    { icon: Compass, text: "Explore 1000+ Trails" },
+    { icon: Tent, text: "Camping & Hiking" },
+    { icon: TreePine, text: "Nature Experiences" },
+    { icon: Award, text: "Best Travel Platform 2024" },
   ];
 
   return (
@@ -68,7 +69,7 @@ const Footer = () => {
 
               {/* Social Links */}
               <div className="mt-6 flex gap-3">
-                {socialLinks.map(social => (
+                {socialLinks.map((social) => (
                   <Link
                     key={social.name}
                     href={social.href}
@@ -112,7 +113,7 @@ const Footer = () => {
                 Quick Links
               </h3>
               <ul className="space-y-2.5">
-                {quickLinks.map(link => (
+                {quickLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
@@ -131,7 +132,7 @@ const Footer = () => {
                 Support
               </h3>
               <ul className="space-y-2.5">
-                {supportLinks.map(link => (
+                {supportLinks.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
@@ -232,8 +233,8 @@ const Footer = () => {
               >
                 Sitemap
               </Link>
-              <span className="flex items-center gap-1 text-sm text-white/40">
-                Made with{' '}
+              <span className="sm:flex items-center gap-1 text-sm text-white/40 hidden  ">
+                Made with{" "}
                 <Heart className="h-4 w-4 text-red-400 animate-pulse" /> by
                 TrailNest
               </span>

@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { Compass, MoveRight } from 'lucide-react';
-import Container from '@/components/Ui/Container';
-import Button from '@/components/Ui/Button';
+import Link from "next/link";
+import { Compass, MoveRight } from "lucide-react";
+import Container from "@/components/Ui/Container";
+import Button from "@/components/Ui/Button";
 
 export default function NotFound() {
   return (

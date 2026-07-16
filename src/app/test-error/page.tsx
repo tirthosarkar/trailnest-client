@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function TestPage() {
   const [shouldCrash, setShouldCrash] = useState(false);
@@ -8,7 +8,7 @@ export default function TestPage() {
   // This forces the error to happen during the RENDER phase,
   // which is exactly what error.tsx is built to catch.
   if (shouldCrash) {
-    throw new Error('Simulated application render crash!');
+    throw new Error("Simulated application render crash!");
   }
 
   return (

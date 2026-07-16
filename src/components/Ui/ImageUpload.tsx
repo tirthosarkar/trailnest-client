@@ -1,10 +1,10 @@
 // components/Ui/ImageUpload.tsx
-'use client';
+"use client";
 
-import { useState, useRef, ChangeEvent } from 'react';
-import { Upload, X, Loader2, Camera, Image as ImageIcon } from 'lucide-react';
-import Image from 'next/image';
-import { useImageUpload } from '@/hooks/useImageUpload';
+import { useState, useRef, ChangeEvent } from "react";
+import { Upload, X, Loader2, Camera, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 interface ImageUploadProps {
   onImageUpload?: (url: string) => void;
@@ -18,9 +18,9 @@ interface ImageUploadProps {
 const ImageUpload = ({
   onImageUpload,
   onImageRemove,
-  defaultImage = '',
-  label = 'Profile Photo',
-  className = '',
+  defaultImage = "",
+  label = "Profile Photo",
+  className = "",
   required = false,
 }: ImageUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,15 +48,15 @@ const ImageUpload = ({
     }
 
     // Reset input
-    e.target.value = '';
+    e.target.value = "";
   };
 
   const handleRemove = () => {
-    setPreview('');
+    setPreview("");
     removeImage();
     onImageRemove?.();
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -166,8 +166,8 @@ const ImageUpload = ({
               <ImageIcon className="h-4 w-4 text-(--text-secondary)" />
               <span className="text-xs text-(--text-secondary)">
                 {uploadedImage
-                  ? 'Image uploaded successfully'
-                  : 'Image uploaded'}
+                  ? "Image uploaded successfully"
+                  : "Image uploaded"}
               </span>
             </div>
             <button

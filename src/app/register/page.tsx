@@ -1,17 +1,18 @@
 // app/register/page.tsx
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { FcGoogle } from 'react-icons/fc';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { toast } from "sonner";
 
-import Container from '@/components/Ui/Container';
-import Button from '@/components/Ui/Button';
-import Input from '@/components/Ui/Input';
-import ImageUpload from '@/components/Ui/ImageUpload';
-import { signUp } from '@/lib/auth-client';
+import Container from "@/components/Ui/Container";
+import Button from "@/components/Ui/Button";
+import Input from "@/components/Ui/Input";
+import ImageUpload from "@/components/Ui/ImageUpload";
+import { signUp } from "@/lib/auth-client";
 
 const RegisterPage = () => {
   const router = useRouter();
@@ -20,94 +21,94 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    image: '',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    email: "",
+    image: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const [errors, setErrors] = useState({
-    name: '',
-    email: '',
-    image: '',
-    password: '',
-    confirmPassword: '',
-    general: '',
+    name: "",
+    email: "",
+    image: "",
+    password: "",
+    confirmPassword: "",
+    general: "",
   });
 
-  const [success, setSuccess] = useState('');
+  const [success, setSuccess] = useState("");
 
   const validatePassword = (password: string) => {
     const errors: string[] = [];
 
-    if (password.length < 6) errors.push('at least 6 characters');
-    if (!/[A-Z]/.test(password)) errors.push('one uppercase letter');
-    if (!/[a-z]/.test(password)) errors.push('one lowercase letter');
+    if (password.length < 6) errors.push("at least 6 characters");
+    if (!/[A-Z]/.test(password)) errors.push("one uppercase letter");
+    if (!/[a-z]/.test(password)) errors.push("one lowercase letter");
 
     return errors;
   };
 
   const validateForm = (): boolean => {
     const newErrors = {
-      name: '',
-      email: '',
-      image: '',
-      password: '',
-      confirmPassword: '',
-      general: '',
+      name: "",
+      email: "",
+      image: "",
+      password: "",
+      confirmPassword: "",
+      general: "",
     };
     let isValid = true;
 
     // Name validation
     if (!formData.name) {
-      newErrors.name = 'Name is required';
+      newErrors.name = "Name is required";
       isValid = false;
     } else if (formData.name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+      newErrors.name = "Name must be at least 2 characters";
       isValid = false;
     } else if (formData.name.length > 50) {
-      newErrors.name = 'Name must be less than 50 characters';
+      newErrors.name = "Name must be less than 50 characters";
       isValid = false;
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
       isValid = false;
     } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = "Please enter a valid email address";
       isValid = false;
     }
 
     // Image validation
     if (!formData.image) {
-      newErrors.image = 'Photo is required';
+      newErrors.image = "Photo is required";
       isValid = false;
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
       isValid = false;
     } else {
       const passwordErrors = validatePassword(formData.password);
       if (passwordErrors.length > 0) {
-        newErrors.password = `Password must contain ${passwordErrors.join(', ')}`;
+        newErrors.password = `Password must contain ${passwordErrors.join(", ")}`;
         isValid = false;
       }
     }
 
     // Confirm Password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = "Please confirm your password";
       isValid = false;
     } else if (
       formData.password &&
       formData.password !== formData.confirmPassword
     ) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
       isValid = false;
     }
 
@@ -117,50 +118,51 @@ const RegisterPage = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
 
     // Clear specific field error when user starts typing
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
     // Clear general error when user starts typing
     if (errors.general) {
-      setErrors(prev => ({ ...prev, general: '' }));
+      setErrors((prev) => ({ ...prev, general: "" }));
     }
-    if (success) setSuccess('');
+    if (success) setSuccess("");
   };
 
   const handleImageUpload = (url: string) => {
-    setFormData(prev => ({ ...prev, image: url }));
+    setFormData((prev) => ({ ...prev, image: url }));
     if (errors.image) {
-      setErrors(prev => ({ ...prev, image: '' }));
+      setErrors((prev) => ({ ...prev, image: "" }));
     }
   };
 
   const handleImageRemove = () => {
-    setFormData(prev => ({ ...prev, image: '' }));
+    setFormData((prev) => ({ ...prev, image: "" }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
+      toast.error("Please fix all errors before submitting");
       return;
     }
 
     setIsLoading(true);
     setErrors({
-      name: '',
-      email: '',
-      image: '',
-      password: '',
-      confirmPassword: '',
-      general: '',
+      name: "",
+      email: "",
+      image: "",
+      password: "",
+      confirmPassword: "",
+      general: "",
     });
-    setSuccess('');
+    setSuccess("");
 
     try {
       const result = await signUp.email({
@@ -171,25 +173,35 @@ const RegisterPage = () => {
       });
 
       if (result.error) {
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
-          general: result.error.message || 'Registration failed',
+          general: result.error.message || "Registration failed",
         }));
+        toast.error("Registration failed", {
+          description: result.error.message || "Please try again",
+        });
         return;
       }
 
-      setSuccess('Registration successful! Redirecting to login...');
+      setSuccess("Registration successful! Redirecting to login...");
+      toast.success("🎉 Registration successful!", {
+        description: "Please check your email to verify your account.",
+        duration: 5000,
+      });
 
       setTimeout(() => {
-        router.push('/login');
+        router.push("/login");
         router.refresh();
-      }, 1500);
+      }, 2000);
     } catch (err) {
       console.error(err);
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        general: 'Registration failed. Please try again.',
+        general: "Registration failed. Please try again.",
       }));
+      toast.error("Registration failed", {
+        description: "An unexpected error occurred. Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -210,6 +222,7 @@ const RegisterPage = () => {
               </p>
             </div>
 
+            {/* Success Message - Inline */}
             {success && (
               <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0" />
@@ -217,6 +230,7 @@ const RegisterPage = () => {
               </div>
             )}
 
+            {/* General Error - Inline */}
             {errors.general && (
               <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600 flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0" />
@@ -256,8 +270,8 @@ const RegisterPage = () => {
                   disabled={isLoading}
                   className={
                     errors.name
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                      : ''
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                      : ""
                   }
                 />
 
@@ -284,8 +298,8 @@ const RegisterPage = () => {
                   disabled={isLoading}
                   className={
                     errors.email
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                      : ''
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                      : ""
                   }
                 />
 
@@ -306,17 +320,17 @@ const RegisterPage = () => {
                 <div className="relative">
                   <Input
                     name="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Create password"
                     value={formData.password}
                     onChange={handleChange}
                     disabled={isLoading}
-                    className={`pr-10 ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
+                    className={`pr-10 ${errors.password ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""}`}
                   />
 
                   <button
                     type="button"
-                    onClick={() => setShowPassword(prev => !prev)}
+                    onClick={() => setShowPassword((prev) => !prev)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                     disabled={isLoading}
                   >
@@ -348,15 +362,15 @@ const RegisterPage = () => {
 
                 <Input
                   name="confirmPassword"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Confirm password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   disabled={isLoading}
                   className={
                     errors.confirmPassword
-                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-                      : ''
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                      : ""
                   }
                 />
 
@@ -395,7 +409,7 @@ const RegisterPage = () => {
                     Creating Account...
                   </span>
                 ) : (
-                  'Register'
+                  "Register"
                 )}
               </Button>
             </form>
@@ -423,7 +437,7 @@ const RegisterPage = () => {
             </button>
 
             <p className="mt-6 text-center text-sm text-(--text-secondary)">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link
                 href="/login"
                 className="font-semibold text-(--primary) hover:underline transition"

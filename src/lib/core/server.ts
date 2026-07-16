@@ -1,9 +1,17 @@
-'use server';
+"use server";
 
-import { redirect } from 'next/navigation';
-import { getUserToken } from './session';
+import { redirect } from "next/navigation";
+import { getUserToken } from "./session";
 
-const baseURL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:5000';
+const baseURL = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+// Define error response type
+interface ErrorResponse {
+  error?: string;
+  message?: string;
+  data?: {
+    message?: string;
+  };
+}
 
 export const authHeader = async (): Promise<Record<string, string>> => {
   const token = await getUserToken();
@@ -22,16 +30,16 @@ const handleStatusCode = (
 
   switch (res.status) {
     case 401:
-      console.warn('Unauthorized request. Access tokens may be expired.');
-      redirect('/unauthorized');
+      console.warn("Unauthorized request. Access tokens may be expired.");
+      redirect("/unauthorized");
     case 403:
-      console.warn('Forbidden. You do not have permission.');
-      redirect('/forbidden');
+      console.warn("Forbidden. You do not have permission.");
+      redirect("/forbidden");
     case 404:
-      console.warn('Resource not found.');
-      redirect('/not-found');
+      console.warn("Resource not found.");
+      redirect("/not-found");
     case 500:
-      console.error('Internal Server Error.');
+      console.error("Internal Server Error.");
       break;
     default:
       console.error(`HTTP Error: ${res.status}`);
@@ -40,26 +48,81 @@ const handleStatusCode = (
   throw new Error(errorMessage);
 };
 
-export const serverFetch = async <T = unknown>(path: string): Promise<T> => {
+// Updated serverFetch with query params support
+export const serverFetch = async <T = unknown>(
+  path: string,
+  params?: Record<string, string | number | boolean>,
+): Promise<T> => {
   try {
-    const res = await fetch(`${baseURL}${path}`);
+    // Build URL with query parameters
+    let url = `${baseURL}${path}`;
 
-    if (!res.ok) {
-      let errorData: Record<string, unknown>;
-      try {
-        errorData = await res.json();
-      } catch {
-        errorData = {};
+    if (params) {
+      const queryParams = new URLSearchParams();
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          queryParams.append(key, String(value));
+        }
+      });
+
+      const queryString = queryParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
       }
-      throw new Error(
-        (errorData.message as string) ||
-          `Fetch failed with status ${res.status}`,
-      );
     }
 
-    return (await res.json()) as T;
+    console.log(`🔍 Fetching: ${url}`);
+
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+
+    // Only add auth header if it exists
+    try {
+      const auth = await authHeader();
+      if (auth && Object.keys(auth).length > 0) {
+        headers.Authorization = auth.Authorization;
+      }
+    } catch (authError) {
+      console.warn("Auth header not available:", authError);
+    }
+
+    const res = await fetch(url, {
+      headers,
+    });
+
+    console.log(`📡 Response Status: ${res.status} for ${url}`);
+
+    if (!res.ok) {
+      let errorMessage = `Fetch failed with status ${res.status}`;
+
+      try {
+        const errorData = (await res.json()) as ErrorResponse;
+        console.error("❌ Error Response:", errorData);
+
+        // Extract error message safely using optional chaining
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.data?.message) {
+          errorMessage = errorData.data.message;
+        }
+      } catch {
+        // If response is not JSON, use status text
+        errorMessage = res.statusText || errorMessage;
+        console.error("❌ Error Response: Non-JSON response");
+      }
+
+      throw new Error(errorMessage);
+    }
+
+    const data = await res.json();
+    console.log(`✅ Success Response: ${url}`);
+    return data as T;
   } catch (error) {
-    console.error(`Server Fetch error at ${path}:`, error);
+    console.error(`❌ Server Fetch error at ${path}:`, error);
     throw error;
   }
 };
@@ -80,18 +143,18 @@ export const protectedFetch = async <T = unknown>(path: string): Promise<T> => {
       } catch {
         parsedErrorData = {};
       }
-      throw new Error('HTTP_REDIRECT_TRIGGER');
+      throw new Error("HTTP_REDIRECT_TRIGGER");
     }
 
     return (await res.json()) as T;
   } catch (error) {
     const err = error as Error & { digest?: string };
 
-    if (err.message === 'HTTP_REDIRECT_TRIGGER' && responseToProcess) {
+    if (err.message === "HTTP_REDIRECT_TRIGGER" && responseToProcess) {
       handleStatusCode(responseToProcess, parsedErrorData);
     }
 
-    if (err.digest?.startsWith('NEXT_REDIRECT')) {
+    if (err.digest?.startsWith("NEXT_REDIRECT")) {
       throw err;
     }
 
@@ -103,7 +166,7 @@ export const protectedFetch = async <T = unknown>(path: string): Promise<T> => {
 export const serverMutation = async <T = unknown>(
   path: string,
   data?: unknown,
-  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'POST',
+  method: "POST" | "PUT" | "PATCH" | "DELETE" = "POST",
 ): Promise<T | { success: true }> => {
   let responseToProcess: Response | null = null;
   let parsedErrorData: Record<string, unknown> = {};
@@ -114,7 +177,7 @@ export const serverMutation = async <T = unknown>(
     const res = await fetch(`${baseURL}${path}`, {
       method: method,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...(await authHeader()),
       },
       body: data ? JSON.stringify(data) : undefined,
@@ -125,9 +188,9 @@ export const serverMutation = async <T = unknown>(
       try {
         parsedErrorData = await res.json();
       } catch {
-        parsedErrorData = { message: 'An unknown error occurred' };
+        parsedErrorData = { message: "An unknown error occurred" };
       }
-      throw new Error('HTTP_REDIRECT_TRIGGER');
+      throw new Error("HTTP_REDIRECT_TRIGGER");
     }
 
     if (res.status === 204) {
@@ -138,11 +201,11 @@ export const serverMutation = async <T = unknown>(
   } catch (error) {
     const err = error as Error & { digest?: string };
 
-    if (err.message === 'HTTP_REDIRECT_TRIGGER' && responseToProcess) {
+    if (err.message === "HTTP_REDIRECT_TRIGGER" && responseToProcess) {
       handleStatusCode(responseToProcess, parsedErrorData);
     }
 
-    if (err.digest?.startsWith('NEXT_REDIRECT')) {
+    if (err.digest?.startsWith("NEXT_REDIRECT")) {
       throw err;
     }
 
