@@ -1,5 +1,6 @@
 // components/Navbar/Logo.tsx
 import Link from 'next/link';
+import { Mountain } from 'lucide-react';
 
 interface LogoProps {
   isScrolled?: boolean;
@@ -14,25 +15,15 @@ const Logo = ({ isScrolled = false }: LogoProps) => {
     >
       {/* Logo Icon */}
       <div
-        className={`flex items-center justify-center rounded-full bg-(--primary) font-bold text-white transition-all duration-300 ${
+        className={`flex items-center justify-center rounded-full bg-(--primary) font-bold text-white transition-all duration-300 group-hover:scale-105 ${
           isScrolled ? 'h-8 w-8 text-sm' : 'h-10 w-10 text-lg'
         }`}
       >
-        <svg
-          className={`transition-all duration-300 ${
+        <Mountain
+          className={`transition-all duration-300 group-hover:rotate-6 ${
             isScrolled ? 'h-4 w-4' : 'h-5 w-5'
           }`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 2L2 7l10 5 10-5-10-5z" />
-          <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
-          <path d="M2 17l10 5 10-5" />
-        </svg>
+        />
       </div>
 
       {/* Logo Text */}
@@ -42,7 +33,8 @@ const Logo = ({ isScrolled = false }: LogoProps) => {
             isScrolled ? 'text-xl' : 'text-2xl'
           }`}
         >
-          Trail<span className="text-(--primary)">Nest</span>
+          <span className="text-cyan-800"> Trail</span>
+          <span className="text-(--primary)">Nest</span>
         </h1>
         <p
           className={`hidden text-xs text-gray-500 transition-all duration-300 sm:block ${

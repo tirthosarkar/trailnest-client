@@ -1,8 +1,21 @@
+// components/Navbar/MobileDrawer.tsx
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import {
+  Menu,
+  X,
+  Home,
+  PlusCircle,
+  Calendar,
+  User,
+  Settings,
+  LogOut,
+  Compass,
+} from 'lucide-react';
 import Button from '@/components/Ui/Button';
 
 interface MobileDrawerProps {
@@ -11,114 +24,204 @@ interface MobileDrawerProps {
 
 const MobileDrawer = ({ isLoggedIn }: MobileDrawerProps) => {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
-  const publicLinks = [
-    {
-      name: 'Home',
-      href: '/',
-    },
-    {
-      name: 'Explore Listings',
-      href: '/explore',
-    },
+  // Primary navigation links
+  const mainLinks = [
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Explore', href: '/explore', icon: Compass },
   ];
 
-  const privateLinks = [
-    {
-      name: 'Add Listing',
-      href: '/add-listing',
-    },
-    {
-      name: 'My Listings',
-      href: '/my-listings',
-    },
-    {
-      name: 'My Bookings',
-      href: '/my-bookings',
-    },
+  // Action links for authenticated users
+  const actionLinks = [
+    { name: 'Add Listing', href: '/add-listing', icon: PlusCircle },
+    { name: 'My Listings', href: '/my-listings', icon: Home },
+    { name: 'My Bookings', href: '/my-bookings', icon: Calendar },
   ];
 
-  const links = isLoggedIn ? [...publicLinks, ...privateLinks] : publicLinks;
+  // User account specific settings
+  const accountLinks = [
+    { name: 'Profile', href: '/profile', icon: User },
+    { name: 'Settings', href: '/settings', icon: Settings },
+  ];
+
+  const isActiveLink = (href: string) => {
+    if (href === '/') return pathname === href;
+    return pathname.startsWith(href);
+  };
 
   return (
     <div className="lg:hidden">
-      {/* Toggle Button */}
-
-      <button onClick={() => setOpen(true)}>
-        <Menu size={30} />
+      {/* Trigger Button */}
+      <button
+        onClick={() => setOpen(true)}
+        aria-label="Open menu"
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition hover:bg-gray-200"
+      >
+        <Menu size={22} />
       </button>
 
-      {/* Overlay */}
-
+      {/* Drawer Overlay & Panel */}
       {open && (
         <>
+          {/* Backdrop Blur */}
           <div
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm transition-all animate-in fade-in duration-200"
           />
 
-          {/* Drawer */}
-
-          <div className="fixed right-0 top-0 z-50 flex h-screen w-72 flex-col bg-white shadow-xl">
-            {/* Header */}
-
-            <div className="flex items-center justify-between border-b p-5">
-              <h2 className="text-xl font-bold text-[var(--primary)]">Menu</h2>
-
-              <button onClick={() => setOpen(false)}>
-                <X size={28} />
+          {/* Premium Right Drawer Panel */}
+          <div className="fixed right-0 top-0 z-50 flex h-screen w-80 flex-col bg-white shadow-2xl transition-transform duration-300 ease-out animate-in slide-in-from-right">
+            {/* Header section matching drop-down style */}
+            <div className="flex items-center justify-between border-b px-5 py-4">
+              <h2 className="text-lg font-bold text-(--dark)">Navigation</h2>
+              <button
+                onClick={() => setOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition"
+                aria-label="Close menu"
+              >
+                <X size={20} />
               </button>
             </div>
 
-            {/* Links */}
+            {/* Scrollable Navigation Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Main App Links */}
+              <div className="space-y-1">
+                <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                  Discover
+                </p>
+                {mainLinks.map(link => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition font-medium text-sm ${
+                      isActiveLink(link.href)
+                        ? 'bg-(--primary)/10 text-(--primary) font-semibold'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <link.icon
+                      className={`h-4 w-4 ${isActiveLink(link.href) ? 'text-(--primary)' : 'text-gray-400'}`}
+                    />
+                    <span>{link.name}</span>
+                  </Link>
+                ))}
+              </div>
 
-            <div className="flex flex-1 flex-col gap-2 p-5">
-              {links.map(link => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setOpen(false)}
-                  className="rounded-lg px-3 py-3 transition hover:bg-gray-100"
-                >
-                  {link.name}
-                </Link>
-              ))}
+              {/* Dynamic Action / Management Links */}
+              {isLoggedIn && (
+                <div className="space-y-1">
+                  <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                    Manage
+                  </p>
+                  {actionLinks.map(link => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition font-medium text-sm ${
+                        isActiveLink(link.href)
+                          ? 'bg-(--primary)/10 text-(--primary) font-semibold'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <link.icon
+                        className={`h-4 w-4 ${isActiveLink(link.href) ? 'text-(--primary)' : 'text-gray-400'}`}
+                      />
+                      <span>{link.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* Explicit Profile Options inside Menu */}
+              {isLoggedIn && (
+                <div className="space-y-1">
+                  <p className="px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+                    Account
+                  </p>
+                  {accountLinks.map(link => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setOpen(false)}
+                      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition font-medium text-sm ${
+                        isActiveLink(link.href)
+                          ? 'bg-(--primary)/10 text-(--primary) font-semibold'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <link.icon
+                        className={`h-4 w-4 ${isActiveLink(link.href) ? 'text-(--primary)' : 'text-gray-400'}`}
+                      />
+                      <span>{link.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Bottom */}
-
-            <div className="border-t p-5">
+            {/* Premium User Card / Authentication Actions Bottom Wrapper */}
+            <div className="border-t bg-gray-50/70 p-4">
               {isLoggedIn ? (
-                <>
-                  <div className="mb-4 flex items-center gap-3">
-                    <img
-                      src="https://i.pravatar.cc/100?img=12"
-                      alt="User"
-                      className="h-10 w-10 rounded-full"
-                    />
-
-                    <div>
-                      <h3 className="font-semibold">Shahadat</h3>
-
-                      <p className="text-sm text-gray-500">View Profile</p>
+                <div className="space-y-4">
+                  {/* User Profile Summary block */}
+                  <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
+                      <Image
+                        src="https://i.pravatar.cc/100?img=12"
+                        alt="User profile avatar"
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="overflow-hidden">
+                      <h3 className="truncate font-semibold text-sm text-(--dark)">
+                        Shahadat
+                      </h3>
+                      <p className="truncate text-xs text-gray-500">
+                        shahadat@email.com
+                      </p>
                     </div>
                   </div>
 
-                  <button className="w-full rounded-xl bg-red-500 py-3 font-medium text-white">
-                    Logout
+                  {/* Clean Text-based Logout matching Dropdown style */}
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      console.log('Logout clicked');
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
                   </button>
-                </>
+                </div>
               ) : (
-                <div className="space-y-3 flex flex-col">
-                  <Link href="/login" onClick={() => setOpen(false)}>
-                    <Button variant="outline" className="w-full">
-                      {' '}
+                /* Unauthenticated Flow Buttons */
+                <div className="flex flex-col gap-2.5">
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="w-full"
+                  >
+                    <Button variant="outline" className="w-full justify-center">
                       Login
                     </Button>
                   </Link>
 
-                  <Link href="/register" onClick={() => setOpen(false)}>
-                    <Button variant="secondary" className="w-full">
+                  <Link
+                    href="/register"
+                    onClick={() => setOpen(false)}
+                    className="w-full"
+                  >
+                    <Button
+                      variant="secondary"
+                      className="w-full justify-center"
+                    >
                       Register
                     </Button>
                   </Link>
